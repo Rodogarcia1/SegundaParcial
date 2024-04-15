@@ -1,0 +1,139 @@
+﻿@page "/Tienda"
+@rendermode InteractiveAuto
+
+<h3>Administrador de Productos</h3>
+
+<button class="btn btn-primary" @onclick="ToggleView">@((showInventoryView ? "Listado de Productos" : "Existencias"))</button>
+
+@if (showInventoryView)
+{
+    <h4>Existencias de Productos por Departamento</h4>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Departamento</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var departmentGroup in Products.GroupBy(p => p.Department))
+            {
+                <tr>
+                    <td>@departmentGroup.Key</td>
+                    <td>@departmentGroup.Count()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    @if (Products != null && Products.Any())
+    {
+        <h4>Listado de Productos</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Número de Inventario</th>
+                    <th>Nombre</th>
+                    <th>Departamento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in Products)
+                {
+                    if (product != null)
+                    {
+                        <tr>
+                            <td>@product.InventoryNumber</td>
+                            <td>@product.Name</td>
+                            <td>@product.Department</td>
+                            <td>
+                                <button class="btn btn-danger" @onclick="() => DeleteProduct(product)">Eliminar</button>
+                                <button class="btn btn-primary" @onclick="() => EditProduct(product)">Editar</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No hay productos disponibles.</p>
+    }
+
+    <hr />
+
+    <h4>Ingresar Nuevo Producto</h4>
+
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            @errorMessage
+        </div>
+    }
+
+    <form>
+        <div class="form-group">
+            <label for="inventoryNumber">Número de Inventario:</label>
+            <input type="number" class="form-control" @bind="product.InventoryNumber" />
+        </div>
+        <div class="form-group">
+            <label for="name">Nombre:</label>
+            <input type="text" class="form-control" @bind="product.Name" />
+        </div>
+        <div class="form-group">
+            <label for="department">Departamento:</label>
+            <select class="form-control" @bind="product.Department">
+                <option value="Frutas">Frutas</option>
+                <option value="Verduras">Verduras</option>
+                <option value="Lácteos">Lácteos</option>
+            </select>
+        </div>
+        <button type="button" class="btn btn-primary" @onclick="SaveProduct">Guardar</button>
+    </form>
+}
+
+@code {
+    public class Product
+    {
+        public int InventoryNumber { get; set; }
+        public string Name { get; set; }
+        public string Department { get; set; }
+    }
+
+    private List<Product> Products { get; set; } = new List<Product>();
+    private Product product = new Product();
+    private string errorMessage;
+    private bool showInventoryView = false;
+
+    private void ToggleView()
+    {
+        showInventoryView = !showInventoryView;
+    }
+
+    private void DeleteProduct(Product product)
+    {
+        Products.Remove(product);
+    }
+
+    private void EditProduct(Product product)
+    {
+        // Implementar lógica para editar producto
+    }
+
+    private void SaveProduct()
+    {
+        if (Products.Any(p => p.InventoryNumber == product.InventoryNumber))
+        {
+            errorMessage = "El número de inventario ya está registrado.";
+            return;
+        }
+
+        Products.Add(product);
+        errorMessage = null;
+        product = new Product(); // Limpiar formulario después de guardar
+    }
+}
